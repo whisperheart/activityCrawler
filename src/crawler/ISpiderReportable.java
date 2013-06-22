@@ -1,3 +1,4 @@
+package crawler;
 import java.net.*;
 interface ISpiderReportable {
   public boolean spiderFoundURL(URL base,URL url);

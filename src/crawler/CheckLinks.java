@@ -1,3 +1,4 @@
+package crawler;
 import java.awt.*;
 import javax.swing.*;
 import java.net.*;
