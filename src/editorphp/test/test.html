@@ -1,0 +1,18 @@
+<script language=javascript type="text/javascript">
+function F(str)
+{
+window.returnValue = str;
+window.close();
+}
+</script>
+ 
+<body style="background: menu">
+<div style="margin-top: 15%; margin-left:5%">
+ 
+<input id="Button1" type="button" value="Open" style="width:80px;height:25px" onclick="F(Button1.value);"/>
+ 
+<input id="Button2" type="button" value="Save" style="width:80px;height:25px" onclick="F(Button2.value);"/>
+ 
+<input id="Button3" type="button" value="Cancel" style="width:80px;height:25px" onclick="F(Button3.value);" />
+</div>
+</body>
