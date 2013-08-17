@@ -1,10 +1,24 @@
 package crawler;
-import java.util.*;
-import java.net.*;
-import java.io.*;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLConnection;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Date;
 
-import javax.swing.text.*;
-import javax.swing.text.html.*;
+import javax.swing.text.MutableAttributeSet;
+import javax.swing.text.html.HTML;
+import javax.swing.text.html.HTMLEditorKit;
+
+import access.Access;
+import access.AccessInterface;
+import access.DBAccess;
+import access.FileAccess;
+import filter.Filter;
 /**
  * That class implements a reusable spider
  */
@@ -30,26 +44,19 @@ public class Spider {
    * should be canceled
    */
   protected boolean cancel = false;
-  /**
-   * The constructor
-   * 
-   * @param report A class that implements the ISpiderReportable
-   * interface, that will receive information that the
-   * spider finds.
-   */
   
-  protected File f = new File("E:\\","output.txt");
+  protected int website;
   
-  protected FileOutputStream fos;
+  protected Filter filter;
   
-  protected DataOutputStream dos;
+  protected Access access;
   
-  public Spider(ISpiderReportable report) throws IOException
+  public Spider(ISpiderReportable report, int website, Filter filter, Access access) throws IOException
   {
     this.report = report;
-
-    this.fos = new FileOutputStream(this.f);
-    this.dos = new DataOutputStream(this.fos);
+    this.website = website;
+    this.filter = filter;
+    this.access = access;
   }
   /**
    * Get the URLs that resulted in an error.
@@ -166,13 +173,26 @@ public class Spider {
       for ( int i=0;(i<list.length)&&!cancel;i++ )
         processURL((URL)list[i]);
     }
+    log("Cancel: " + cancel);
+    
+    /*
+    Object list[] = getWorkloadProcessed().toArray();
+    
+    Collection urlList = new ArrayList(3);
+    for ( int i=0;i<list.length; i++) 
+    	if (filter.activityFilter((URL)list[i])) 
+    		urlList.add((String)list[i]);
+    
+    String[] urls;
+    if (urlList.toArray().length > 0)
+    	urls = (String[])urlList.toArray();
+    else 
+    	urls = null;
+
+     access.saveURLs(website, urls);
+    */
   }
-/**
- * A HTML parser callback used by this class to detect links
- * 
- * @author wuhailin
- * @version 1.0
- */
+  
   protected class Parser
   extends HTMLEditorKit.ParserCallback {
     protected URL base;
@@ -184,6 +204,7 @@ public class Spider {
                                 MutableAttributeSet a,int pos)
     {
       String href = (String)a.getAttribute(HTML.Attribute.HREF);
+ //     System.out.println(href);
       
       if( (href==null) && (t==HTML.Tag.FRAME) )
         href = (String)a.getAttribute(HTML.Attribute.SRC);
@@ -193,6 +214,7 @@ public class Spider {
       int i = href.indexOf('#');
       if ( i!=-1 )
         href = href.substring(0,i);
+      
       if ( href.toLowerCase().startsWith("mailto:") ) {
         report.spiderFoundEMail(href);
         return;
@@ -212,17 +234,30 @@ public class Spider {
     protected void handleLink(URL base,String str) throws IOException
     {
       try {
+  //  	  System.out.println("base:" + base + " str:" + str);
+    	  if (str != null) 
+    		  if (str.length() > 0)
+ 			 if (str.charAt(0) == '?') 
+ 			 { 
+ 				 String baseStr = base.toString();
+ 				int i = baseStr.indexOf('?');
+ 			      if ( i!=-1 )
+ 			       baseStr = baseStr.substring(0,i);
+ 				 str = baseStr + str;
+ 				 
+ 			 }
         URL url = new URL(base,str);
-        if ( report.spiderFoundURL(base,url) )
+ //      System.out.println("url:" + url);
+        if ( report.spiderFoundURL(website, base,url) )
           addURL(base, url);
-        else if (Filter.activityFilter(url)) {
-            	dos.writeChars(url.toString() + "\n");
-           }   
+        report.spiderTargetURL(website, base, url);
+        	
       } catch ( MalformedURLException e ) {
         log("Found malformed URL: " + str );
       }
     }
   }
+
   /**
    * Called internally to log information
    * This basic method just writes the log

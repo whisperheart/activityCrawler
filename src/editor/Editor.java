@@ -1,43 +1,52 @@
 package editor;
 
+import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
-import java.io.IOException;
 
 import javax.swing.ImageIcon;
+import javax.swing.JButton;
 import javax.swing.JFileChooser;
 import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTextField;
+import javax.swing.JTextPane;
+import javax.swing.ScrollPaneConstants;
 import javax.swing.SwingUtilities;
 
+import access.Access;
+import access.AccessInterface;
+import constents.ActConst;
 import constents.FileConst;
-
-import crawler.CheckLinks;
 
 public class Editor extends javax.swing.JFrame 
 					implements Runnable {
 	  protected Thread backgroundThread;
 	
-	  protected javax.swing.JLabel[] label = new javax.swing.JLabel[9];
+	  protected JLabel[] label = new JLabel[9];
 
-	  protected javax.swing.JButton submit = new javax.swing.JButton();
+	  protected JButton submit = new JButton();
 	  
-	  protected javax.swing.JButton prev = new javax.swing.JButton();
+	  protected JButton prev = new JButton();
 	  
-	  protected javax.swing.JButton next = new javax.swing.JButton();
+	  protected JButton next = new JButton();
 
-	  protected javax.swing.JTextArea[] text = new javax.swing.JTextArea[9];
+	  protected JTextField[] text = new JTextField[8];
+	  
+	  protected JTextPane contentText = new JTextPane();
 
-	  protected javax.swing.JScrollPane errorScroll = new javax.swing.JScrollPane();
+	  protected JScrollPane scroll = new JScrollPane(contentText);
+	  
+	  protected JPanel panel = new JPanel();
 	  
 	  protected String[][] actContentList;
-	  
-	  protected String postFile;
-	  
-//	  protected static int Num;
+	  	  
+	  protected int length;
 	  
 	  private int actPoint = 0;
 	  
@@ -45,60 +54,83 @@ public class Editor extends javax.swing.JFrame
 	  
 	  private JLabel imglabel; 
 	  
-	public Editor(String[][] actContentList)
+	  protected Access access;
+	  
+	public Editor(Access access)
 	  {
-	    //{{INIT_CONTROLS
-		this.actContentList = actContentList;
-//		this.Num = Num;
+		this.access = access;
+		actContentList = access.fetchActList();
+		if (actContentList == null)
+			length = 0;
+		else
+			length = actContentList.length;
 	    setTitle("Edit Activity Content");
 	    getContentPane().setLayout(null);
-	    setSize(500,788);
+	    
+	    Dimension dim = getToolkit().getScreenSize(); 
+	    int x0 = dim.width/4, y0 = dim.height/4, w = dim.width/2, h = dim.height;
+	    this.setBounds(x0, y0, w, h);
 	    setVisible(true);
 	    
-	    int labelx = 12;
-	    int imgx = 120, imgl = 250, imgw = 280;
-	    int textx = 68;
-	    int labell = 84, labelw = 20;
-	    int textl = 388, textw = 20, textwc = 156;
-	    int subx = 200, subl = 84, subw = 24;
-	    int prevx = 100, prevl = 84, prevw = 24;
-	    int nextx = 300, nextl = 84, nextw = 24;
-	    int y = 12, dy = 24;
+	    int labelx = 20;
+	    int imgx = w / 3, imgw = w / 3, imgh = h * 35 / 100;
+	    int labelw = w / 10, labelh = 20;
+	    int textx = w / 8;
+	    int textw = w * 3 / 4, texth = 20, texthc = h / 5;
+	    int subx = w / 2, subw = 84, subh = 24;
+	    int prevx = subx - w / 8 , prevw = 84, prevh = 24;
+	    int nextx = subx + w / 8, nextw = 84, nexth = 24;
+	    int y = 0, dy = 24;
 	    
         imglabel = new JLabel();  
-        add(imglabel); 
-        imglabel.setBounds(imgx, y, imgl, imgw);
+        getContentPane().add(imglabel); 
+        imglabel.setBounds(imgx, y, imgw, imgh);
 	    
-        y += imgw + 10;
+        y += imgh + 10;
         
-	    for (int i = 0; i < 9; i ++) {
-	    	label[i] = new javax.swing.JLabel(FileConst.LABEL[i]);
+	    for (int i = 0; i < 8; i ++) {
+	    	label[i] = new JLabel(ActConst.ACTITEM[i]);
 	    	getContentPane().add(label[i]);
-		    label[i].setBounds(labelx, y, labell, labelw);
-	    	text[i] =  new javax.swing.JTextArea(actContentList[0][i]);
+		    label[i].setBounds(labelx, y, labelw, labelh);
+		    if (actContentList == null) 
+		    	text[i] = new JTextField("");
+		    else
+		    	text[i] =  new JTextField(actContentList[0][i]);
 	    	getContentPane().add(text[i]);
-		    text[i].setBounds(textx, y, textl, textw);
+		    text[i].setBounds(textx, y, textw, texth);
 		    y += dy;
 	    }
 	       
-	    text[8].setBounds(textx, y - dy, textl, textwc);
-//	    text[8].setToolTipText(actContentList[0][8]);
-	    y += textwc;
+	    label[8] = new JLabel(ActConst.ACTITEM[8]);
+	    getContentPane().add(label[8]);
+	    label[8].setBounds(labelx, y + texthc / 2, labelw, labelh);
+	    
+	    if (actContentList == null) 
+	    	contentText.setText("");
+	    else
+	    	contentText.setText(actContentList[0][8]);
+	    scroll.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+	    scroll.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS); 
+
+	    scroll.setBounds(textx, y, textw, texthc);
+	    getContentPane().add(scroll);
+	    
+	    y += texthc + 5;
 	    
 	    submit.setText("Submit");
 	    submit.setActionCommand("Submit");
 	    getContentPane().add(submit);
-	    submit.setBounds(subx, y,subl, subw);
+	    submit.setBounds(subx, y,subw, subh);
 	    
 	    prev.setText("Prev");
 	    prev.setActionCommand("Prev");
 	    getContentPane().add(prev);
-	    prev.setBounds(prevx, y ,prevl, prevw);
+	    prev.setBounds(prevx, y ,prevw, prevh);
 	    
 	    next.setText("Next");
 	    next.setActionCommand("Next");
 	    getContentPane().add(next);
-	    next.setBounds(nextx, y, nextl, nextw);
+	    next.setBounds(nextx, y, nextw, nexth);
 	    
 	    SubAction lSubAction = new SubAction();
 	    submit.addActionListener(lSubAction);
@@ -109,9 +141,14 @@ public class Editor extends javax.swing.JFrame
 	    NextAction lNextAction = new NextAction();
 	    next.addActionListener(lNextAction);
         
-        postFile = FileConst.getImgFile("0");
-        imglabel.setIcon(new ImageIcon(postFile));
-
+	    if (actContentList != null) {
+	    Object image = access.fetchImage(actContentList[0][0]);
+	    if (image instanceof byte[])
+	    	imglabel.setIcon(new ImageIcon((byte[])image));
+	    else 
+	    	imglabel.setIcon(new ImageIcon((String)image));
+	    }
+	    
 	    this.chooser = new JFileChooser(); 
 	    chooser.setCurrentDirectory(new File("."));
 	          
@@ -131,11 +168,10 @@ public class Editor extends javax.swing.JFrame
 	    menu.add(exitItem);
 	    ExitAction exitAction = new ExitAction();
 	    exitItem.addActionListener(exitAction);  
-	    //}}
 	  }
 	
 	
-	class SubAction implements java.awt.event.ActionListener {
+	class SubAction implements ActionListener {
 	    public void actionPerformed(java.awt.event.ActionEvent event)
 	    {
 	      Object object = event.getSource();
@@ -144,7 +180,7 @@ public class Editor extends javax.swing.JFrame
 	    }
 	  }
 
-	class PrevAction implements java.awt.event.ActionListener {
+	class PrevAction implements ActionListener {
 	    public void actionPerformed(java.awt.event.ActionEvent event)
 	    {
 	      Object object = event.getSource();
@@ -156,31 +192,32 @@ public class Editor extends javax.swing.JFrame
 	    }
 	  }
 	
-	class NextAction implements java.awt.event.ActionListener {
-	    public void actionPerformed(java.awt.event.ActionEvent event)
+	class NextAction implements ActionListener {
+	    public void actionPerformed(ActionEvent event)
 	    {
 	      Object object = event.getSource();
 	      if ( object == next )
-		    if (actPoint < actContentList.length) {
+		    if (actPoint < length - 1) {
 		        actPoint += 1;
 		        flushEditor();
 		    }
 	    }
 	  }
 	
-	class ImgAction implements java.awt.event.ActionListener {   	 
+	class ImgAction implements ActionListener {   	 
         @Override  
         public void actionPerformed(ActionEvent e) {  
                 // TODO Auto-generated method stub  
                 int result = chooser.showOpenDialog(null);  
                 if(result==JFileChooser.APPROVE_OPTION){  
-                    postFile = chooser.getSelectedFile().getPath();             
-                    imglabel.setIcon(new ImageIcon(postFile));  
+                    String posterFile = chooser.getSelectedFile().getPath();             
+                    imglabel.setIcon(new ImageIcon(posterFile)); 
+					access.saveImage(posterFile, actContentList[actPoint][0], false);
                 }     
             }  
 	}
 	
-	class ExitAction implements java.awt.event.ActionListener {
+	class ExitAction implements ActionListener {
 	          @Override  
 	            public void actionPerformed(ActionEvent e) {  
 	                // TODO Auto-generated method stub  
@@ -188,34 +225,20 @@ public class Editor extends javax.swing.JFrame
 	            }  
 	  }
 	
-	  void begin_actionPerformed(java.awt.event.ActionEvent event)
+	  void begin_actionPerformed(ActionEvent event)
 	  {
-//	    if ( backgroundThread==null ) {
-//	      submit.setLabel("Cancel");
-//	      backgroundThread = new Thread(this);
-//	      backgroundThread.start();
-
-//	    } else {
-
-//	    }
 		String[] actContent = new String[9]; 
-		for (int i = 0; i < 9; i ++){
+		for (int i = 0; i < 8; i ++){
 			actContent[i] = text[i].getText();
 		}
 		
-		try {
-			FileWR.saveAsFile(actContent);
-			FileWR.saveAsImg(postFile, actPoint, false);
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		FileWR.log("Submit successes.", "");
+		actContent[8] = contentText.getText();
+		access.saveAct(actContent);
+		access.log("Submit successes.", "");
 	  }
 
 	  public void run()
 	  {
-//	      errors.setText("");
 	      Runnable doLater = new Runnable()
 	      {
 	        public void run()
@@ -228,21 +251,14 @@ public class Editor extends javax.swing.JFrame
 	  }
 	  
 	  void flushEditor() {
-		  for (int i = 0; i < 9; i ++) {
-		    	label[i].setText(FileConst.LABEL[i]);
-		    	text[i].setText(actContentList[actPoint][i]);
-		    }
-	        imglabel.setIcon(new ImageIcon(FileConst.getImgFile(String.valueOf(actPoint))));
+		  for (int i = 0; i < 8; i ++) 
+			  text[i].setText(actContentList[actPoint][i]);
+		  contentText.setText(actContentList[actPoint][8]);
+	        Object image = access.fetchImage(actContentList[actPoint][0]);
+		    if (image instanceof byte[])
+		    	imglabel.setIcon(new ImageIcon((byte[])image));
+		    else 
+		    	imglabel.setIcon(new ImageIcon((String)image));
 	  }
-
-/*	  
-	  static public void main(String args[])
-	  {
-		  
-		ActFetcher fetcher = new ActFetcher(Num);
-		actContentList = fetcher.fetchFromFile();
-	    (new Editor(actContentList)).setVisible(true);
-	  }
-*/
 
 }

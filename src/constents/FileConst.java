@@ -6,14 +6,14 @@ public class FileConst {
 	
 	public final static String TYPESAVEDIR = "/Users/kanglianghuan/workplace/APPproject/data0/";
 	
-	public final static String URLFILENAME = "/Users/kanglianghuan/workplace/APPproject/urls.txt";
+	public final static String URLSFILEDIR = "/Users/kanglianghuan/workplace/APPproject/";
+	
+	public final static String URLSFILENAME = "urls.txt";
 	
 	public final static String FILENAME = "content.txt";
 	
 	public final static String IMGNAME = "post.jpg";
-	
-	public final static String[] LABEL = {"activity", "url", "title", "time", "city", "place", "type", "img", "content"};
-	
+		
 	public final static String DELIMITER = "/";
 	
 	public static String getContFile(String p) {
@@ -42,5 +42,9 @@ public class FileConst {
 	
 	public static String getContDir(String p) {
 		return DATASAVEDIR + DELIMITER + p;
+	}
+	
+	public static String getUrlsFile(int website) {
+		return URLSFILEDIR + DELIMITER + ActConst.WEBSITE[website] + DELIMITER + URLSFILENAME;
 	}
 }
