@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<classpath>
-	<classpathentry kind="src" path="src"/>
-	<classpathentry exported="true" kind="lib" path="/Users/kanglianghuan/Software/ProjectDevelopment/mysql-connector-java-5.1-1.7/mysql-connector-java-5.1.7-bin.jar"/>
-	<classpathentry exported="true" kind="lib" path="/Users/kanglianghuan/Software/ProjectDevelopment/java_jar/dom4j-1.6.1/dom4j-1.6.1.jar"/>
-	<classpathentry kind="lib" path="/Users/kanglianghuan/Software/ProjectDevelopment/java_jar/jsoup-1.7.2.jar"/>
-	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.launching.macosx.MacOSXType/JVM 1.6.0"/>
-	<classpathentry kind="output" path="bin"/>
-</classpath>
